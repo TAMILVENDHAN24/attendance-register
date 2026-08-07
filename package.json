@@ -1,0 +1,37 @@
+{
+  "name": "attendance-register",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Attendance Register for web, Android, and Windows",
+  "main": "electron-main.cjs",
+  "scripts": {
+    "prepare:web": "node scripts/copy-web.mjs",
+    "android:add": "npm run prepare:web && npx cap add android",
+    "android:sync": "npm run prepare:web && npx cap sync android",
+    "android:open": "npm run android:sync && npx cap open android",
+    "android:build": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "desktop:start": "npm run prepare:web && electron .",
+    "desktop:build": "npm run prepare:web && electron-builder --win portable"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "electron": "^36.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.tamilvendhan.attendanceregister",
+    "productName": "Attendance Register",
+    "files": [
+      "electron-main.cjs",
+      "www/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  }
+}
