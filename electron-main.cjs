@@ -8,6 +8,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 620,
     autoHideMenuBar: true,
+    icon: path.join(__dirname, 'assets', 'attendance-register-icon.ico'),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

@@ -25,8 +25,10 @@
   "build": {
     "appId": "com.tamilvendhan.attendanceregister",
     "productName": "Attendance Register",
+    "icon": "assets/attendance-register-icon.ico",
     "files": [
       "electron-main.cjs",
+      "assets/attendance-register-icon.ico",
       "www/**/*",
       "package.json"
     ],
