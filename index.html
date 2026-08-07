@@ -2783,6 +2783,13 @@ function advCol(){return userRef().collection('advances');}
 function locksCol(){return userRef().collection('locks');}
 function settingsCol(){return userRef().collection('settings');}
 function syncSignalRef(){return settingsCol().doc('sync');}
+// Keep a value copy for change detection. Reusing the live advances object here
+// meant an edit changed both the current and "last synced" values at once.
+function snapshotAdvances(){
+  const snapshot={};
+  db.staff.forEach((s,i)=>{snapshot[i]=JSON.parse(JSON.stringify(s.advances||{}));});
+  return snapshot;
+}
 
 function ensureDbDefaults(){
   if(!db.staff||!db.staff.length)db={staff:[...defF,...defM],att:{},qmSettings:null};
@@ -2933,9 +2940,7 @@ async function loadFromFirestore(){
     lastSyncedAtt = JSON.parse(JSON.stringify(db.att||{}));
     lastSyncedStaff = JSON.parse(JSON.stringify(db.staff||[]));
     lastSyncedLocks = JSON.parse(JSON.stringify(db.lockedDates||{}));
-    const advSnap2 = {};
-    db.staff.forEach((s,i) => { advSnap2[i] = s.advances||{}; });
-    lastSyncedAdvances = advSnap2;
+    lastSyncedAdvances = snapshotAdvances();
 
     firestoreReady = true;
     if(!hadCache) refreshAppUI();
@@ -2969,9 +2974,7 @@ async function loadFromFirestore(){
       lastSyncedAtt = JSON.parse(JSON.stringify(db.att||{}));
       lastSyncedStaff = JSON.parse(JSON.stringify(db.staff||[]));
       lastSyncedLocks = JSON.parse(JSON.stringify(db.lockedDates||{}));
-      const a={};
-      db.staff.forEach((s,i)=>{a[i]=s.advances||{};});
-      lastSyncedAdvances = a;
+      lastSyncedAdvances = snapshotAdvances();
     }
 
     firestoreReady = true;
@@ -3122,8 +3125,7 @@ function attachFirestoreListeners(){
       const d=doc.data();
       if(db.staff[d.staffIndex])db.staff[d.staffIndex].advances=d.advances||{};
     });
-    const a={};db.staff.forEach((s,i)=>{a[i]=s.advances||{};});
-    lastSyncedAdvances=a;
+    lastSyncedAdvances=snapshotAdvances();
     remoteSyncing=false;
     buildTable();renderStaffTab();
     setSyncStatus('↻ Advances synced · '+new Date().toLocaleTimeString(),'ok');
@@ -3285,8 +3287,7 @@ async function syncAdvances(){
     }
   });
   await batch.commit();
-  const a={};db.staff.forEach((s,i)=>{a[i]=s.advances||{};});
-  lastSyncedAdvances=a;
+  lastSyncedAdvances=snapshotAdvances();
 }
 
 // LOCKS: diff instead of delete-all + rewrite-all
