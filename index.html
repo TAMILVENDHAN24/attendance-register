@@ -2674,6 +2674,18 @@ tr.edit-last-sorted td:first-child {
   </div>
 </div>
 
+<!-- APP CONFIRMATION MODAL -->
+<div class="modal-wrap" id="action-confirm-wrap">
+  <div class="modal" style="max-width:360px">
+    <h3 id="action-confirm-title">Confirm Action</h3>
+    <p id="action-confirm-message" style="font-size:12px;color:var(--text-2);margin-bottom:16px;line-height:1.5"></p>
+    <div class="modal-btns">
+      <button onclick="closeActionConfirm()">Cancel</button>
+      <button class="ok" id="action-confirm-btn" onclick="executeActionConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -4248,8 +4260,10 @@ function attHideStaff(si){attHiddenSet.add(si);saveAttHidden();buildTable();rend
 function attUnhideStaff(si){attHiddenSet.delete(si);saveAttHidden();buildTable();renderAttEditPanel();}
 function attShowAllHidden(){
   if(!attHiddenSet.size)return;
-  if(!confirm('Show all '+attHiddenSet.size+' hidden staff in attendance?'))return;
-  attHiddenSet.clear();saveAttHidden();buildTable();renderAttEditPanel();
+  const count=attHiddenSet.size;
+  openActionConfirm('Show hidden staff?', 'Show all '+count+' hidden staff member'+(count===1?'':'s')+' in Attendance?', 'Show All', ()=>{
+    attHiddenSet.clear();saveAttHidden();buildTable();renderAttEditPanel();
+  });
 }
 function attHiddenBarHtml(){
   if(attHiddenSet.size===0)return '';
@@ -4713,6 +4727,23 @@ document.getElementById('custom-salt-inp').addEventListener('keydown',e=>{
 });
 function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');pendCell=null;editIdx=null;}
+let actionConfirmCallback=null;
+function openActionConfirm(title,message,buttonLabel,callback){
+  document.getElementById('action-confirm-title').textContent=title;
+  document.getElementById('action-confirm-message').textContent=message;
+  document.getElementById('action-confirm-btn').textContent=buttonLabel||'Confirm';
+  actionConfirmCallback=callback;
+  showModal('action-confirm-wrap');
+}
+function closeActionConfirm(){
+  closeModal('action-confirm-wrap');
+  actionConfirmCallback=null;
+}
+function executeActionConfirm(){
+  const callback=actionConfirmCallback;
+  closeActionConfirm();
+  if(callback)callback();
+}
 /* ─── QUICK MARK ─── */
 let qmSelectedIndices=[];
 let suggestFocusIdx=-1;
@@ -5422,11 +5453,13 @@ function qmRosterUnhideStaff(si){
 }
 function qmRosterShowAllHidden(){
   if(!qmRosterHiddenSet.size)return;
-  if(!confirm('Show all '+qmRosterHiddenSet.size+' hidden staff in roster?'))return;
-  qmRosterHiddenSet.clear();
-  syncQmHiddenKeys();
-  saveQmSettingsSoon();
-  renderQmRoster();
+  const count=qmRosterHiddenSet.size;
+  openActionConfirm('Show hidden staff?', 'Show all '+count+' hidden staff member'+(count===1?'':'s')+' in Quick Mark?', 'Show All', ()=>{
+    qmRosterHiddenSet.clear();
+    syncQmHiddenKeys();
+    saveQmSettingsSoon();
+    renderQmRoster();
+  });
 }
 function qmRosterHiddenBarHtml(){
   if(qmRosterHiddenSet.size===0)return '';
